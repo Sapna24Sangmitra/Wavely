@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h2 {
+            color: #333;
+        }
+        form, button {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 300px;
+            text-align: center;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgYQWr4X03PCz1Qz3-fHzSjjqvD2I16ZM",
+            authDomain: "wavelly-c1bb1.firebaseapp.com",
+            projectId: "wavelly-c1bb1",
+            storageBucket: "wavelly-c1bb1.appspot.com",
+            messagingSenderId: "577295200107",
+            appId: "1:577295200107:web:d00ad29fb8b193715ba62e",
+            measurementId: "G-QZ9GR8CKCR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Handle sign in form submission
+        document.getElementById('sign-in-form')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('sign-in-email').value;
+            const password = document.getElementById('sign-in-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Successfully signed in
+                    console.log('User signed in:', userCredential.user);
+                    alert('Sign In Successful!');
+                    // Redirect to home page or another page
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error.message);
+                    alert(error.message);
+                });
+        });
+
+        // Handle Google sign in
+        document.getElementById('google-sign-in')?.addEventListener('click', function() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log('User signed in with Google:', result.user);
+                    alert('Sign In Successful!');
+                    // Redirect to home page or another page
+                })
+                .catch((error) => {
+                    console.error('Error signing in with Google:', error.message);
+                    alert(error.message);
+                });
+        });
+    </script>
+</head>
+<body>
+    <h2>Sign In</h2>
+    <form id="sign-in-form">
+        <input type="email" id="sign-in-email" placeholder="Email" required>
+        <input type="password" id="sign-in-password" placeholder="Password" required>
+        <button type="submit">Sign In</button>
+    </form>
+    <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    <button id="google-sign-in">Sign In with Google</button>
+</body>
+</html>

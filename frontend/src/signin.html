@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Wavelly</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-image: url('images/background.jpg'); /* Background image */
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        /* Overlay to darken the background */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+        }
+
+        /* Container for the sign-in form */
+        .container {
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent dark background for the form */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #fff;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 90%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        button {
+            width: 70%;
+            padding: 15px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        a {
+            color: #f8f9fa;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .sign-in-text {
+            margin-top: 10px;
+            color: #ddd;
+        }
+    </style>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgYQWr4X03PCz1Qz3-fHzSjjqvD2I16ZM",
+            authDomain: "wavelly-c1bb1.firebaseapp.com",
+            projectId: "wavelly-c1bb1",
+            storageBucket: "wavelly-c1bb1.appspot.com",
+            messagingSenderId: "577295200107",
+            appId: "1:577295200107:web:d00ad29fb8b193715ba62e",
+            measurementId: "G-QZ9GR8CKCR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Handle sign in with email and password
+        document.getElementById('sign-in-form')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('sign-in-email').value;
+            const password = document.getElementById('sign-in-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Successfully signed in
+                    console.log('User signed in:', userCredential.user);
+                    alert('Sign In Successful!');
+                    // Redirect to home page or another page
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error.message);
+                    alert(error.message);
+                });
+        });
+    </script>
+</head>
+<body>
+    <div class="overlay"></div> <!-- Dark overlay for background -->
+    <div class="container">
+        <h2>Sign In - Wavelly</h2>
+        <form id="sign-in-form">
+            <input type="email" id="sign-in-email" placeholder="Email" required>
+            <input type="password" id="sign-in-password" placeholder="Password" required>
+            <button type="submit">Sign In</button>
+        </form>
+        <p class="sign-in-text">Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </div>
+</body>
+</html>

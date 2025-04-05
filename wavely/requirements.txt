@@ -1,1 +1,7 @@
-// Placeholder for requirements.txt
+fastapi
+uvicorn
+pymongo
+httpx
+python-dotenv
+openai
+pydantic

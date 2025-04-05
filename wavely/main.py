@@ -4,4 +4,4 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Wavely API is running"}
+    return {"message": "Wavelly API is running"}

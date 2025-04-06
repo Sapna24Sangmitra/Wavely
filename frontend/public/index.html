@@ -950,20 +950,30 @@
                     },
                     body: JSON.stringify(reportData)
                 });
-                
-                // Hide loading popup
+
+                // First, hide all modals and popups
                 hideLoadingPopup();
+                hideReportModal();
                 
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Then show the appropriate message
                 if (response.ok) {
                     alert('Thank you for your report. It has been submitted successfully.');
-                    hideReportModal();
                 } else {
                     const errorData = await response.json();
                     alert(`Failed to submit report: ${errorData.detail || 'Unknown error'}`);
                 }
             } catch (error) {
                 console.error('Error submitting report:', error);
+                // Make sure to hide all modals and popups
                 hideLoadingPopup();
+                hideReportModal();
+                
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
                 alert('An error occurred while submitting your report. Please try again later.');
             }
         }

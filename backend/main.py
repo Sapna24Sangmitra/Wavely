@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from pymongo import MongoClient
+import copy
 
 # MongoDB setup
 uri = "mongodb+srv://wavelyuser:Sjsu2025@cluster0.wootyit.mongodb.net/"
@@ -30,6 +31,8 @@ class Leg(BaseModel):
 
 class Route(BaseModel):
     legs: List[Leg]
+    summary: Optional[str] = None
+    overview_polyline: Optional[dict] = None
 
 class GoogleMapsResponse(BaseModel):
     routes: List[Route]
@@ -38,6 +41,7 @@ class GoogleMapsResponse(BaseModel):
 async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
     print("Received request to calculate route scores.")
     route_scores = []
+    enriched_routes = []
 
     for idx, route in enumerate(google_maps_response.routes):
         print(f"Calculating safety score for route {idx+1}...")
@@ -66,9 +70,16 @@ async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
                 total_steps += 1
 
         avg_score = total_score / total_steps if total_steps else 0
-        route_scores.append({"route_id": f"route{idx+1}", "safety_score": round(avg_score, 2)})
+        route_scores.append(round(avg_score, 2))
 
-    return {"route_scores": route_scores}
+        # Attach safety score to original route object
+        enriched_route = copy.deepcopy(route.dict())
+        enriched_route["safety_score"] = round(avg_score, 2)
+        enriched_routes.append(enriched_route)
+
+    return {
+        "routes": enriched_routes
+    }
 
 def get_crime_score(start, end, radius_miles=0.5):
     lat = (start[0] + end[0]) / 2

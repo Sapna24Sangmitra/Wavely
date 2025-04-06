@@ -461,7 +461,7 @@
                 
                 // First, send to debug endpoint to understand the data structure
                 try {
-                    const debugResponse = await fetch('http://localhost:8000/debug_request', {
+                    const debugResponse = await fetch('http://wavelly.tech/api/debug_request', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -481,7 +481,7 @@
                 }
                 
                 // Now send to the actual endpoint
-                const response = await fetch('http://localhost:8000/calculate_route_scores', {
+                const response = await fetch('http://wavelly.tech/api/calculate_route_scores', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -943,7 +943,7 @@
                 showLoadingPopup();
                 
                 // Send report to backend
-                const response = await fetch('http://localhost:8000/submit_incident_report', {
+                const response = await fetch('http://wavelly.tech/api/submit_incident_report', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

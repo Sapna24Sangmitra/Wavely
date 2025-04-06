@@ -312,18 +312,53 @@
         }
     </script>
     <script>
+        async function fetchFakeCallScript() {
+            try {
+                const res = await fetch("http://localhost:8000/fake-call", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        context: "Act like a protective dad calling his daughter who may be in danger. Start a conversation that makes her feel safe."
+                    })
+                });
+                const data = await res.json();
+                return data.message;
+            } catch (err) {
+                console.error("Failed to fetch fake call script:", err);
+                return "Hey sweetheart, just checking in. Are you alright? Stay on the main road and text me if anything feels off.";
+            }
+        }
+    
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voice = speechSynthesis.getVoices().find(v =>
+                v.name.includes("Google UK English Male") || v.name.toLowerCase().includes("daniel")
+            );
+            if (voice) utterance.voice = voice;
+            utterance.rate = 1;
+            speechSynthesis.speak(utterance);
+        }
+    
         document.addEventListener('DOMContentLoaded', () => {
             const fakeCallBtn = document.getElementById('fakeCallBtn');
             const fakeCallView = document.getElementById('fakeCallView');
             const endCallBtn = document.getElementById('endCallBtn');
-
-            fakeCallBtn.addEventListener('click', () => {
+    
+            fakeCallBtn.addEventListener('click', async () => {
                 fakeCallView.style.display = 'flex';
+                const script = await fetchFakeCallScript();
+                speakText(script);
             });
-
+    
             endCallBtn.addEventListener('click', () => {
                 fakeCallView.style.display = 'none';
+                speechSynthesis.cancel();
             });
+    
+            // preload voices
+            window.speechSynthesis.onvoiceschanged = () => {};
         });
     </script>
 </head>

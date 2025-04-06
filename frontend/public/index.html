@@ -126,6 +126,51 @@
             font-size: 12px;
             color: #666;
         }
+        
+        /* Loading popup styles */
+        .loading-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-message {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
@@ -226,6 +271,9 @@
 
         async function calculateRouteScores(routes) {
             try {
+                // Show loading popup with changing messages
+                showLoadingPopup();
+                
                 // Format the routes data to match the backend's expected structure
                 const formattedRoutes = [];
                 
@@ -342,9 +390,14 @@
                     console.log(`Route ${index + 1} keys:`, Object.keys(route));
                 });
                 
+                // Hide loading popup
+                hideLoadingPopup();
+                
                 return data.routes;
             } catch (error) {
                 console.error('Error calculating route scores:', error);
+                // Hide loading popup in case of error
+                hideLoadingPopup();
                 return null;
             }
         }
@@ -643,6 +696,63 @@
             
             // Show the legend
             legend.style.display = 'block';
+        }
+
+        // Function to show loading popup with changing messages
+        function showLoadingPopup() {
+            // Create loading popup if it doesn't exist
+            let loadingPopup = document.getElementById('loadingPopup');
+            if (!loadingPopup) {
+                loadingPopup = document.createElement('div');
+                loadingPopup.id = 'loadingPopup';
+                loadingPopup.className = 'loading-popup';
+                loadingPopup.innerHTML = `
+                    <div class="loading-content">
+                        <div class="loading-message" id="loadingMessage">Getting your safest path...</div>
+                        <div class="loading-spinner"></div>
+                    </div>
+                `;
+                document.body.appendChild(loadingPopup);
+            }
+            
+            // Show the popup
+            loadingPopup.style.display = 'flex';
+            
+            // Set up message rotation
+            const messages = [
+                "Getting your safest path...",
+                "Your safety is our priority",
+                "Analyzing route safety factors...",
+                "Finding the most secure path for you...",
+                "Almost there!"
+            ];
+            
+            let messageIndex = 0;
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            // Change message every 5 seconds
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                loadingMessage.textContent = messages[messageIndex];
+            }, 5000);
+            
+            // Store the interval ID in the popup element for later clearing
+            loadingPopup.dataset.messageInterval = messageInterval;
+        }
+        
+        // Function to hide loading popup
+        function hideLoadingPopup() {
+            const loadingPopup = document.getElementById('loadingPopup');
+            if (loadingPopup) {
+                // Clear the message rotation interval
+                const messageInterval = loadingPopup.dataset.messageInterval;
+                if (messageInterval) {
+                    clearInterval(parseInt(messageInterval));
+                }
+                
+                // Hide the popup
+                loadingPopup.style.display = 'none';
+            }
         }
     </script>
 </head>

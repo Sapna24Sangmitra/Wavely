@@ -97,15 +97,17 @@
             background-color: #c82333;
         }
     </style>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY&libraries=places&callback=initMap" loading="lazy"></script>
+
+    <!-- Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
         import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBgYQWr4X03PCz1Qz3-fHzSjjqvD2I16ZM",
+            apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "wavelly-c1bb1.firebaseapp.com",
             projectId: "wavelly-c1bb1",
             storageBucket: "wavelly-c1bb1.appspot.com",
@@ -114,19 +116,20 @@
             measurementId: "G-QZ9GR8CKCR"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
-        // Add sign out functionality
-        document.getElementById('signOutBtn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = '../src/signin.html';
-            }).catch((error) => {
-                console.error('Error signing out:', error);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('signOutBtn').addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    window.location.href = '../src/signin.html';
+                }).catch((error) => {
+                    console.error('Error signing out:', error);
+                });
             });
         });
     </script>
+
     <script>
         let map;
         let directionsService;
@@ -135,15 +138,14 @@
         let markers = [];
         let customOverlays = [];
         let autocompleteStart, autocompleteEnd;
+        let audio = null; // Track audio player
 
         function initMap() {
-            // Initialize the map centered on San Francisco
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 37.7749, lng: -122.4194 },
                 zoom: 12
             });
 
-            // Initialize the Directions service and renderer
             directionsService = new google.maps.DirectionsService();
             directionsRenderer = new google.maps.DirectionsRenderer({
                 map: map,
@@ -151,13 +153,11 @@
                 suppressMarkers: true
             });
 
-            // Add Autocomplete to the input fields
             const startInput = document.getElementById('currentLocation');
             const endInput = document.getElementById('destination');
             autocompleteStart = new google.maps.places.Autocomplete(startInput);
             autocompleteEnd = new google.maps.places.Autocomplete(endInput);
 
-            // Add event listener for "Enter" key
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter') {
                     updateMap();
@@ -166,15 +166,10 @@
         }
 
         function clearMap() {
-            // Clear all polylines
             polylines.forEach(polyline => polyline.setMap(null));
             polylines = [];
-
-            // Clear all markers
             markers.forEach(marker => marker.setMap(null));
             markers = [];
-
-            // Clear all custom overlays
             customOverlays.forEach(overlay => overlay.setMap(null));
             customOverlays = [];
         }
@@ -196,17 +191,12 @@
                     provideRouteAlternatives: true
                 };
 
-                // Clear existing routes, markers, and overlays
                 clearMap();
 
-                // Request directions and display all routes
                 directionsService.route(request, (result, status) => {
                     if (status === 'OK') {
                         const routes = result.routes;
-
-                        // Loop through all routes and display them
                         routes.forEach((route, index) => {
-                            // Offset the route path slightly to distinguish overlapping routes
                             const offsetPath = route.overview_path.map((latLng, i) => {
                                 const offsetFactor = index * 0.0001;
                                 return new google.maps.LatLng(
@@ -215,24 +205,18 @@
                                 );
                             });
 
-                            // Create a polyline for the route
                             const polyline = new google.maps.Polyline({
-                                path: offsetPath, // Use the offset path
-                                strokeColor: index === 0 ? '#0000FF' : '#FF0000', // Blue for the best route, red for others
+                                path: offsetPath,
+                                strokeColor: index === 0 ? '#0000FF' : '#FF0000',
                                 strokeOpacity: 0.7,
-                                strokeWeight: 5, // Uniform stroke weight for all routes
+                                strokeWeight: 5,
                                 map: map
                             });
                             polylines.push(polyline);
 
-                            // Add markers for start (current location) and end (destination) points
-                            const startLatLng = route.legs[0].start_location;
-                            const endLatLng = route.legs[0].end_location;
-
                             const startMarker = new google.maps.Marker({
-                                position: startLatLng,
+                                position: route.legs[0].start_location,
                                 map: map,
-                                title: `Start of Route ${index + 1}`,
                                 icon: {
                                     url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                                     scaledSize: new google.maps.Size(32, 32)
@@ -241,9 +225,8 @@
                             markers.push(startMarker);
 
                             const endMarker = new google.maps.Marker({
-                                position: endLatLng,
+                                position: route.legs[0].end_location,
                                 map: map,
-                                title: `End of Route ${index + 1}`,
                                 icon: {
                                     url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
                                     scaledSize: new google.maps.Size(32, 32)
@@ -251,18 +234,12 @@
                             });
                             markers.push(endMarker);
 
-                            // Display route details (distance and duration) near the route
-                            const distance = route.legs[0].distance.text;
-                            let duration = route.legs[0].duration.text;
+                            const duration = route.legs[0].duration.text
+                                .replace('hours', 'h').replace('mins', 'm').replace(' ', '');
 
-                            // Format the duration to "5h 8m"
-                            duration = duration.replace('hours', 'h').replace('mins', 'm').replace(' ', '');
-
-                            // Adjust the position of the label to avoid overlapping
                             const offset = Math.floor(route.overview_path.length / 3) + index * 10;
                             const labelPosition = route.overview_path[offset] || route.overview_path[Math.floor(route.overview_path.length / 3)];
 
-                            // Create a custom div for the route time
                             const customLabel = document.createElement('div');
                             customLabel.style.position = 'absolute';
                             customLabel.style.background = 'white';
@@ -273,15 +250,13 @@
                             customLabel.style.borderRadius = '5px';
                             customLabel.style.boxShadow = '0px 2px 6px rgba(0, 0, 0, 0.3)';
                             customLabel.innerHTML = `<div style="text-align: center;">
-                                                       <span>${duration}</span>
-                                                       <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
-                                                     </div>`;
+                                <span>${duration}</span>
+                                <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
+                            </div>`;
 
-                            // Create a custom overlay for the label
                             const customOverlay = new google.maps.OverlayView();
                             customOverlay.onAdd = function () {
-                                const panes = this.getPanes();
-                                panes.overlayLayer.appendChild(customLabel);
+                                this.getPanes().overlayLayer.appendChild(customLabel);
                             };
                             customOverlay.draw = function () {
                                 const projection = this.getProjection();
@@ -290,13 +265,14 @@
                                 customLabel.style.top = position.y + 'px';
                             };
                             customOverlay.onRemove = function () {
-                                customLabel.parentNode.removeChild(customLabel);
+                                if (customLabel.parentNode) {
+                                    customLabel.parentNode.removeChild(customLabel);
+                                }
                             };
                             customOverlay.setMap(map);
-                            customOverlays.push(customOverlay); // Store the custom overlay
+                            customOverlays.push(customOverlay);
                         });
 
-                        // Fit the map to show all routes
                         const bounds = new google.maps.LatLngBounds();
                         routes.forEach(route => {
                             route.overview_path.forEach(point => bounds.extend(point));
@@ -310,15 +286,10 @@
                 alert('Please enter both current location and destination.');
             }
         }
-    </script>
-    <script>
-        let audio = null;
-        let isSpeaking = false; // Track if speech synthesis is active
 
-        async function fetchFakeCallScript() {
+        async function fetchFakeCallAudio() {
             try {
-                const res = await fetch("http://localhost:8000/fake-call", {
-                //const res = await fetch("http://localhost:8000/fake-call/audio", {
+                const res = await fetch("http://localhost:8000/fake-call/audio", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -328,93 +299,19 @@
                     })
                 });
 
-                // Check if the response is JSON
-                const contentType = res.headers.get("Content-Type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await res.json();
-                    console.log("Gemini response:", data.message);
+                const blob = await res.blob();
+                const audioUrl = URL.createObjectURL(blob);
 
-                    // Return a longer script
-                    return (
-                        data.message +
-                        " Remember, if you ever feel unsafe, just let me know. " +
-                        "I'm always here for you, no matter what. " +
-                        "Stay alert, stay safe, and call me if you need anything. " +
-                        "I love you, sweetheart."
-                    );
-                } else {
-                    // Handle non-JSON response
-                    const text = await res.text();
-                    console.warn("Non-JSON response received:", text);
-                    return (
-                        "Hi sweetheart, just checking in. Are you okay? " +
-                        "Remember, if you ever feel unsafe, just let me know. " +
-                        "I'm always here for you, no matter what. " +
-                        "Stay alert, stay safe, and call me if you need anything. " +
-                        "I love you, sweetheart."
-                    );
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
                 }
+
+                audio = new Audio(audioUrl);
+                audio.play();
             } catch (err) {
-                console.error("Failed to fetch fake call script:", err);
-                return (
-                    "Hi sweetheart, just checking in. Are you okay? " +
-                    "Remember, if you ever feel unsafe, just let me know. " +
-                    "I'm always here for you, no matter what. " +
-                    "Stay alert, stay safe, and call me if you need anything. " +
-                    "I love you, sweetheart."
-                );
+                console.error("❌ Failed to fetch fake call audio:", err);
             }
-        }
-
-        function speakText(text) {
-            console.log("🔊 Speaking text:", text);
-
-            const utterance = new SpeechSynthesisUtterance(text);
-
-            const voices = speechSynthesis.getVoices();
-            console.log("🗣️ Available voices:", voices);
-
-            const voice = voices.find(v =>
-                v.name.includes("Google UK English Male") || v.name.toLowerCase().includes("daniel")
-            );
-            if (voice) {
-                utterance.voice = voice;
-                console.log("✅ Using voice:", voice.name);
-            } else {
-                console.warn("⚠️ Preferred voice not found. Using default voice.");
-            }
-
-            utterance.rate = 1;
-
-            // Set a flag to indicate speech synthesis is active
-            isSpeaking = true;
-
-            // When speech ends, reset the flag
-            utterance.onend = () => {
-                isSpeaking = false;
-                console.log("Speech synthesis ended.");
-            };
-
-            speechSynthesis.speak(utterance);
-        }
-
-        function stopSpeechAndNavigate() {
-            // Stop speech synthesis
-            if (isSpeaking) {
-                speechSynthesis.cancel();
-                isSpeaking = false; // Reset the flag
-                console.log("Speech synthesis stopped.");
-            }
-
-            // Stop audio playback if it exists
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-                audio = null;
-            }
-
-            // Navigate to the home page
-            window.location.href = "index.html"; // Replace with the correct home page URL if different
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -424,17 +321,18 @@
 
             fakeCallBtn.addEventListener('click', async () => {
                 fakeCallView.style.display = 'flex';
-                const script = await fetchFakeCallScript();
-                speakText(script);
+                await fetchFakeCallAudio();
             });
 
             endCallBtn.addEventListener('click', () => {
                 fakeCallView.style.display = 'none';
-                stopSpeechAndNavigate();
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio = null;
+                    console.log("🔇 Audio manually stopped");
+                }
             });
-
-            // Trigger voice preload
-            window.speechSynthesis.getVoices();
         });
     </script>
 </head>

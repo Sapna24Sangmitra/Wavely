@@ -7,6 +7,8 @@ import copy
 import json
 import asyncio
 from datetime import datetime
+import google.generativeai as genai
+
 
 # MongoDB setup with motor (async driver)
 uri = "mongodb+srv://wavelyuser:Sjsu2025@cluster0.wootyit.mongodb.net/"

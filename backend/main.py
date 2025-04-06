@@ -1,7 +1,27 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+import google.generativeai as genai
+
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+model = genai.GenerativeModel("gemini-pro")
 
 app = FastAPI()
 
-@app.get("/")
-def root():
-    return {"message": "Wavelly API is running"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/fake-call")
+async def fake_call(request: Request):
+    data = await request.json()
+    context = data.get("context", "Act like a protective dad calling his daughter who may be in danger.")
+    
+    try:
+        response = model.generate_content(context)
+        return { "message": response.text }
+    except Exception as e:
+        return { "error": str(e) }

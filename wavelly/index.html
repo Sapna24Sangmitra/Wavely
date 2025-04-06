@@ -1,8 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Google Maps Integration</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap" loading="lazy"></script>
+    <title>Wavelly - Safe Navigation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input {
+            width: 200px;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sign-out-btn {
+            background-color: #dc3545;
+        }
+        .sign-out-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBgYQWr4X03PCz1Qz3-fHzSjjqvD2I16ZM",
+            authDomain: "wavelly-c1bb1.firebaseapp.com",
+            projectId: "wavelly-c1bb1",
+            storageBucket: "wavelly-c1bb1.appspot.com",
+            messagingSenderId: "577295200107",
+            appId: "1:577295200107:web:d00ad29fb8b193715ba62e",
+            measurementId: "G-QZ9GR8CKCR"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Add sign out functionality
+        document.getElementById('signOutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = '../frontend/src/signin.html';
+            }).catch((error) => {
+                console.error('Error signing out:', error);
+            });
+        });
+    </script>
     <script>
         let map;
         let directionsService;
@@ -189,14 +270,15 @@
     </script>
 </head>
 <body onload="initMap()">
-    <h1>Google Maps Integration</h1>
-    <div>
-        <label for="currentLocation">Current Location:</label>
+    <div class="header">
+        <h1>Wavelly - Safe Navigation</h1>
+        <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
+    </div>
+    <div class="controls">
         <input type="text" id="currentLocation" placeholder="Enter your current location" />
-        <label for="destination">Destination:</label>
         <input type="text" id="destination" placeholder="Enter your destination" />
         <button onclick="updateMap()">Get Routes</button>
     </div>
-    <div id="map" style="height: 500px; width: 100%; margin-top: 20px;"></div>
+    <div id="map"></div>
 </body>
 </html>

@@ -10,6 +10,7 @@ db = client["wavelly"]
 crime_collection = db["crime_reports"]
 light_collection = db["street_lighting"]
 institution_collection = db["institutions"]
+foot_traffic_collection = db["foot_traffic"]
 
 app = FastAPI()
 
@@ -48,17 +49,19 @@ async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
                 start_lat, start_lng = step.start_location.lat, step.start_location.lng
                 end_lat, end_lng = step.end_location.lat, step.end_location.lng
 
-                # Get crime-based safety score (higher crimes => higher score => less safe)
+                # Individual component scores
                 crime_score = get_crime_score((start_lat, start_lng), (end_lat, end_lng))
-
-                # Get lighting-based safety score (more light => higher score => safer)
                 lighting_score = get_lighting_score((start_lat, start_lng), (end_lat, end_lng))
-
-                # Get institution-based safety score (presence of institutions => safer)
                 institution_score = get_institution_score((start_lat, start_lng), (end_lat, end_lng))
+                foot_traffic_score = get_foot_traffic_score((start_lat, start_lng), (end_lat, end_lng))
 
                 # Combine with weighted score
-                combined_score = (0.6 * crime_score) + (0.2 * lighting_score) + (0.2 * institution_score)
+                combined_score = (
+                    (0.45 * crime_score) +
+                    (0.3 * foot_traffic_score) +
+                    (0.15 * lighting_score) +
+                    (0.1 * institution_score)
+                )
                 total_score += combined_score
                 total_steps += 1
 
@@ -146,3 +149,31 @@ def get_institution_score(start, end, radius_miles=0.25):
     else:
         print(f"No institution near ({lat}, {lng}). Score: 0")
         return 0
+
+def get_foot_traffic_score(start, end, radius_miles=0.1):
+    lat = (start[0] + end[0]) / 2
+    lng = (start[1] + end[1]) / 2
+    radius_meters = radius_miles * 1609.34
+
+    pipeline = [
+        {"$geoNear": {
+            "near": {"type": "Point", "coordinates": [lng, lat]},
+            "distanceField": "dist.calculated",
+            "maxDistance": radius_meters,
+            "spherical": True
+        }},
+        {"$group": {
+            "_id": None,
+            "total_foot_traffic": {"$sum": "$count"}
+        }}
+    ]
+
+    result = list(foot_traffic_collection.aggregate(pipeline))
+
+    if result:
+        score = min(result[0]['total_foot_traffic'], 100)
+        print(f"Foot traffic score for ({lat}, {lng}): {score}")
+        return score
+    else:
+        print(f"No foot traffic data for ({lat}, {lng}). Score: 50")
+        return 50

@@ -39,6 +39,12 @@ class Step(BaseModel):
 
 class Leg(BaseModel):
     steps: List[Step]
+    duration: Optional[Dict[str, Any]] = None
+    distance: Optional[Dict[str, Any]] = None
+    start_location: Optional[Location] = None
+    end_location: Optional[Location] = None
+    start_address: Optional[str] = None
+    end_address: Optional[str] = None
 
 class Route(BaseModel):
     legs: List[Leg]
@@ -64,13 +70,10 @@ async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
         for idx, route in enumerate(google_maps_response.routes):
             print(f"Calculating safety score for route {idx+1}...")
             print(f"Route has {len(route.legs)} legs")
-
-            print(f"Route: {route}")
             
             total_score = 0
             total_steps = 0
-            enriched_route = copy.deepcopy(route.dict())
-            print(f"Enriched route: {enriched_route}")
+
             for leg_idx, leg in enumerate(route.legs):
                 print(f"  Processing leg {leg_idx+1} with {len(leg.steps)} steps")
                 
@@ -101,9 +104,41 @@ async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
             avg_score = total_score / total_steps if total_steps else 0
             route_scores.append(round(avg_score, 2))
 
-            # Attach safety score to original route object
-            #enriched_route = copy.deepcopy(route.dict())
+            # Create a deep copy of the original route to preserve all parameters
+            enriched_route = copy.deepcopy(route.dict())
+            
+            # Add the safety score to the route
             enriched_route["safety_score"] = round(avg_score, 2)
+            
+            # Log the original route keys for debugging
+            print(f"Original route {idx+1} keys: {list(route.dict().keys())}")
+            print(f"Enriched route {idx+1} keys: {list(enriched_route.keys())}")
+            
+            # Ensure all original fields are preserved
+            if "overview_polyline" not in enriched_route:
+                enriched_route["overview_polyline"] = None
+                
+            if "legs" not in enriched_route:
+                enriched_route["legs"] = []
+            
+            # Ensure duration information is preserved for each leg
+            if route.legs:
+                for leg_idx, leg in enumerate(route.legs):
+                    # Check if the leg has a duration attribute
+                    if hasattr(leg, 'duration'):
+                        # Access the text key from the duration dictionary
+                        duration_text = leg.duration.get('text', 'Duration unknown')
+                        print(f"Route {idx+1}, Leg {leg_idx+1} duration: {duration_text}")
+                        
+                        # Make sure the duration is properly copied to the enriched route
+                        if "legs" in enriched_route and len(enriched_route["legs"]) > leg_idx:
+                            if "duration" not in enriched_route["legs"][leg_idx]:
+                                enriched_route["legs"][leg_idx]["duration"] = leg.duration
+                            else:
+                                # Ensure the duration has the text property
+                                if "text" not in enriched_route["legs"][leg_idx]["duration"]:
+                                    enriched_route["legs"][leg_idx]["duration"]["text"] = duration_text
+                
             enriched_routes.append(enriched_route)
 
         return {

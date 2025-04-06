@@ -297,6 +297,14 @@
                 }
 
                 const data = await response.json();
+                console.log("Received enriched routes from backend:", data.routes);
+                
+                // Log the component scores for debugging
+                data.routes.forEach((route, index) => {
+                    console.log(`Route ${index + 1} safety score: ${route.safety_score}`);
+                    console.log(`Route ${index + 1} keys:`, Object.keys(route));
+                });
+                
                 return data.routes;
             } catch (error) {
                 console.error('Error calculating route scores:', error);
@@ -430,35 +438,36 @@
                             
                             // Only add markers if we have valid locations
                             if (startLatLng) {
-                                const startMarker = new google.maps.Marker({
-                                    position: startLatLng,
-                                    map: map,
+                            const startMarker = new google.maps.Marker({
+                                position: startLatLng,
+                                map: map,
                                     title: `Start of Route ${originalIndex + 1}`,
-                                    icon: {
-                                        url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-                                        scaledSize: new google.maps.Size(32, 32)
-                                    }
-                                });
-                                markers.push(startMarker);
+                                icon: {
+                                    url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                                    scaledSize: new google.maps.Size(32, 32)
+                                }
+                            });
+                            markers.push(startMarker);
                             }
-                            
+
                             if (endLatLng) {
-                                const endMarker = new google.maps.Marker({
-                                    position: endLatLng,
-                                    map: map,
+                            const endMarker = new google.maps.Marker({
+                                position: endLatLng,
+                                map: map,
                                     title: `End of Route ${originalIndex + 1}`,
-                                    icon: {
-                                        url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                                        scaledSize: new google.maps.Size(32, 32)
-                                    }
-                                });
-                                markers.push(endMarker);
+                                icon: {
+                                    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                                    scaledSize: new google.maps.Size(32, 32)
+                                }
+                            });
+                            markers.push(endMarker);
                             }
 
                             // Display route details near the route
                             let distance = "Distance unknown";
                             let duration = "Duration unknown";
                             
+                            // Check for duration in the enriched route
                             if (route.legs && route.legs.length > 0) {
                                 if (route.legs[0].distance) {
                                     distance = route.legs[0].distance.text || "Distance unknown";
@@ -468,6 +477,20 @@
                                     duration = route.legs[0].duration.text || "Duration unknown";
                                     duration = duration.replace('hours', 'h').replace('mins', 'm').replace(' ', '');
                                 }
+                            }
+                            
+                            // Log duration for debugging
+                            console.log(`Route ${originalIndex + 1} duration: ${duration}`);
+                            
+                            // Log all legs and their durations for debugging
+                            if (route.legs) {
+                                route.legs.forEach((leg, legIdx) => {
+                                    if (leg.duration) {
+                                        console.log(`Route ${originalIndex + 1}, Leg ${legIdx + 1} duration: ${leg.duration.text}`);
+                                    } else {
+                                        console.log(`Route ${originalIndex + 1}, Leg ${legIdx + 1} has no duration`);
+                                    }
+                                });
                             }
 
                             // Adjust the position of the label to avoid overlapping
@@ -490,7 +513,7 @@
                                     <div class="safety-indicator ${getSafetyClass(safetyScore)}" style="font-size: 9px; margin-top: 2px;">
                                         Safety: ${safetyScore}%
                                     </div>
-                                    <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
+                                                       <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
                                 </div>
                             `;
 

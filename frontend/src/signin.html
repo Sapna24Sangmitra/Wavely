@@ -120,7 +120,9 @@
                     console.log('User signed in:', userCredential.user);
                     //alert('Sign In Successful!');
                     // Redirect to Google Maps page
-                    window.location.href = '../../wavelly/index.html';
+                    //window.location.href = '../../wavelly/index.html';
+                    window.location.href = '../public/index.html';
+
                 })
                 .catch((error) => {
                     console.error('Error signing in:', error.message);

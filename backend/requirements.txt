@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 pymongo
+motor
 httpx
 python-dotenv
 openai

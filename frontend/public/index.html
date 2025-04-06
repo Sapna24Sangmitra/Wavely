@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Wavelly - Safe Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -242,6 +244,46 @@
         
         .cancel-button:hover {
             background-color: #d1d1d1;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .left-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .right-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #report-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        #report-btn:hover {
+            background-color: #d63026;
+        }
+        
+        #report-btn i {
+            font-size: 16px;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
@@ -802,11 +844,11 @@
             let messageIndex = 0;
             const loadingMessage = document.getElementById('loadingMessage');
             
-            // Change message every 5 seconds
+            // Change message every 3 seconds
             const messageInterval = setInterval(() => {
                 messageIndex = (messageIndex + 1) % messages.length;
                 loadingMessage.textContent = messages[messageIndex];
-            }, 5000);
+            }, 3000);
             
             // Store the interval ID in the popup element for later clearing
             loadingPopup.dataset.messageInterval = messageInterval;
@@ -936,8 +978,16 @@
         <div class="input-group">
             <input type="text" id="currentLocation" placeholder="Current Location">
             <input type="text" id="destination" placeholder="Destination">
-            <button onclick="updateMap()">Get Routes</button>
-            <button id="reportButton" onclick="showReportModal()">Report Incident</button>
+        </div>
+        <div class="button-container">
+            <div class="left-buttons">
+                <button id="get-routes-btn" onclick="updateMap()">Get Routes</button>
+            </div>
+            <div class="right-buttons">
+                <button id="report-btn" onclick="showReportModal()">
+                    <i class="fas fa-exclamation-triangle"></i> Report Incident
+                </button>
+            </div>
         </div>
         <div id="routeInfoContainer" class="route-info"></div>
     </div>

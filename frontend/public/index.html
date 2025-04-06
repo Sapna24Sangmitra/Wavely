@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Wavelly - Safe Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -170,6 +172,118 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        /* Report modal styles */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        
+        .report-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .report-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .report-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        
+        .report-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .report-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .cancel-button {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .cancel-button:hover {
+            background-color: #d1d1d1;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .left-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .right-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #report-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        #report-btn:hover {
+            background-color: #d63026;
+        }
+        
+        #report-btn i {
+            font-size: 16px;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
@@ -721,20 +835,20 @@
             // Set up message rotation
             const messages = [
                 "Getting your safest path...",
+                "Almost there!",
                 "Your safety is our priority",
                 "Analyzing route safety factors...",
-                "Finding the most secure path for you...",
-                "Almost there!"
+                "Finding the most secure path for you..."
             ];
             
             let messageIndex = 0;
             const loadingMessage = document.getElementById('loadingMessage');
             
-            // Change message every 5 seconds
+            // Change message every 3 seconds
             const messageInterval = setInterval(() => {
                 messageIndex = (messageIndex + 1) % messages.length;
                 loadingMessage.textContent = messages[messageIndex];
-            }, 5000);
+            }, 3000);
             
             // Store the interval ID in the popup element for later clearing
             loadingPopup.dataset.messageInterval = messageInterval;
@@ -754,6 +868,115 @@
                 loadingPopup.style.display = 'none';
             }
         }
+        
+        // Function to show report modal
+        function showReportModal() {
+            const reportModal = document.getElementById('reportModal');
+            if (reportModal) {
+                reportModal.style.display = 'flex';
+            }
+        }
+        
+        // Function to hide report modal
+        function hideReportModal() {
+            const reportModal = document.getElementById('reportModal');
+            if (reportModal) {
+                reportModal.style.display = 'none';
+                // Clear the textarea
+                const incidentReport = document.getElementById('incidentReport');
+                if (incidentReport) {
+                    incidentReport.value = '';
+                }
+            }
+        }
+        
+        // Function to submit report
+        async function submitReport() {
+            const incidentReport = document.getElementById('incidentReport');
+            const reportText = incidentReport.value.trim();
+            
+            if (!reportText) {
+                alert('Please provide details about the incident.');
+                return;
+            }
+            
+            try {
+                // Get current location if available
+                let currentLocation = '';
+                const currentLocationInput = document.getElementById('currentLocation');
+                if (currentLocationInput) {
+                    currentLocation = currentLocationInput.value.trim();
+                }
+                
+                // Get destination if available
+                let destination = '';
+                const destinationInput = document.getElementById('destination');
+                if (destinationInput) {
+                    destination = destinationInput.value.trim();
+                }
+                
+                // Get current map center if available
+                let latitude = 0;
+                let longitude = 0;
+                if (map) {
+                    const center = map.getCenter();
+                    if (center) {
+                        latitude = center.lat();
+                        longitude = center.lng();
+                    }
+                }
+                
+                // Create report data
+                const reportData = {
+                    description: reportText,
+                    location: {
+                        name: currentLocation || destination || 'Unknown',
+                        coordinates: {
+                            latitude: latitude,
+                            longitude: longitude
+                        }
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Show loading popup
+                showLoadingPopup();
+                
+                // Send report to backend
+                const response = await fetch('http://localhost:8000/submit_incident_report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(reportData)
+                });
+
+                // First, hide all modals and popups
+                hideLoadingPopup();
+                hideReportModal();
+                
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Then show the appropriate message
+                if (response.ok) {
+                    alert('Thank you for your report. It has been submitted successfully.');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to submit report: ${errorData.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error submitting report:', error);
+                // Make sure to hide all modals and popups
+                hideLoadingPopup();
+                hideReportModal();
+                
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                alert('An error occurred while submitting your report. Please try again later.');
+            }
+        }
     </script>
 </head>
 <body onload="initMap()">
@@ -762,9 +985,21 @@
         <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
     </div>
     <div class="controls">
-        <input type="text" id="currentLocation" placeholder="Enter your current location" />
-        <input type="text" id="destination" placeholder="Enter your destination" />
-        <button onclick="updateMap()">Get Routes</button>
+        <div class="input-group">
+            <input type="text" id="currentLocation" placeholder="Current Location">
+            <input type="text" id="destination" placeholder="Destination">
+        </div>
+        <div class="button-container">
+            <div class="left-buttons">
+                <button id="get-routes-btn" onclick="updateMap()">Get Routes</button>
+            </div>
+            <div class="right-buttons">
+                <button id="report-btn" onclick="showReportModal()">
+                    <i class="fas fa-exclamation-triangle"></i> Report Incident
+                </button>
+            </div>
+        </div>
+        <div id="routeInfoContainer" class="route-info"></div>
     </div>
     <div class="map-container">
         <div id="map"></div>
@@ -789,6 +1024,18 @@
             <div class="legend-item">
                 <span class="color-box" style="background-color: #FF0000;"></span>
                 <span>Lowest Safety</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-content">
+            <div class="report-title">Report an Incident</div>
+            <textarea id="incidentReport" class="report-textarea" placeholder="Please describe the incident in detail..."></textarea>
+            <div class="report-buttons">
+                <button class="report-button cancel-button" onclick="hideReportModal()">Cancel</button>
+                <button class="report-button submit-button" onclick="submitReport()">Submit</button>
             </div>
         </div>
     </div>

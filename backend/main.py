@@ -6,6 +6,7 @@ import motor.motor_asyncio
 import copy
 import json
 import asyncio
+from datetime import datetime
 
 # MongoDB setup with motor (async driver)
 uri = "mongodb+srv://wavelyuser:Sjsu2025@cluster0.wootyit.mongodb.net/"
@@ -15,6 +16,7 @@ crime_collection = db["crime_reports"]
 light_collection = db["street_lighting"]
 institution_collection = db["institutions"]
 foot_traffic_collection = db["foot_traffic"]
+user_incident_collection = db["user_incident_report"]
 
 app = FastAPI()
 
@@ -58,6 +60,19 @@ class GoogleMapsResponse(BaseModel):
     
     class Config:
         extra = "allow"  # Allow extra fields in the model
+
+class Coordinates(BaseModel):
+    latitude: float
+    longitude: float
+
+class LocationInfo(BaseModel):
+    name: str
+    coordinates: Coordinates
+
+class IncidentReport(BaseModel):
+    description: str
+    location: LocationInfo
+    timestamp: str
 
 @app.post("/calculate_route_scores")
 async def calculate_route_scores(google_maps_response: GoogleMapsResponse):
@@ -314,3 +329,33 @@ async def debug_request(request: Request):
         }
     except Exception as e:
         return {"error": str(e)}
+
+@app.post("/submit_incident_report")
+async def submit_incident_report(report: IncidentReport):
+    try:
+        print(f"Received incident report: {report.description}")
+        
+        # Convert the report to a dictionary
+        report_dict = report.dict()
+        
+        # Add a created_at timestamp
+        report_dict["created_at"] = datetime.now()
+        
+        # Add a GeoJSON point for the location with lat and long keys
+        report_dict["location"]["coordinates"] = {
+            "type": "Point",
+            "coordinates": {
+                "lat": report_dict["location"]["coordinates"]["latitude"],
+                "long": report_dict["location"]["coordinates"]["longitude"]
+            }
+        }
+        
+        # Insert the report into the database
+        result = await user_incident_collection.insert_one(report_dict)
+        
+        print(f"Incident report saved with ID: {result.inserted_id}")
+        
+        return {"status": "success", "message": "Incident report submitted successfully"}
+    except Exception as e:
+        print(f"Error submitting incident report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error submitting incident report: {str(e)}")

@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Wavelly - Safe Navigation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -53,6 +55,236 @@
         .sign-out-btn:hover {
             background-color: #c82333;
         }
+        .safety-score {
+            position: absolute;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .route-details {
+            display: flex;
+            gap: 20px;
+        }
+        .safety-indicator {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .safe {
+            background-color: #28a745;
+            color: white;
+        }
+        .moderate {
+            background-color: #ffc107;
+            color: black;
+        }
+        .unsafe {
+            background-color: #dc3545;
+            color: white;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none; /* Hide legend by default */
+        }
+        .legend h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+        }
+        .legend-item span:last-child {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Loading popup styles */
+        .loading-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-message {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Report modal styles */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        
+        .report-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .report-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .report-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        
+        .report-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .report-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .cancel-button {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .cancel-button:hover {
+            background-color: #d1d1d1;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .left-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .right-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #report-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        #report-btn:hover {
+            background-color: #d63026;
+        }
+        
+        #report-btn i {
+            font-size: 16px;
+        }
         .fake-call-btn {
             background-color: #28a745;
             color: white;
@@ -63,38 +295,268 @@
             margin-right: 10px;
         }
         .fake-call-btn:hover {
-            background-color: #218838;
+          background-color: #218838;
         }
         .fake-call-view {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.8);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+        .fake-call-content {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          text-align: center;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .end-call-btn {
+          background-color: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 10px 20px;
+          cursor: pointer;
+          margin-top: 10px;
+        }
+        .end-call-btn:hover {
+          background-color: #c82333;
+        }
+        .safety-score {
+            position: absolute;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        .route-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .route-details {
+            display: flex;
+            gap: 20px;
+        }
+        .safety-indicator {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .safe {
+            background-color: #28a745;
+            color: white;
+        }
+        .moderate {
+            background-color: #ffc107;
+            color: black;
+        }
+        .unsafe {
+            background-color: #dc3545;
+            color: white;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none; /* Hide legend by default */
+        }
+        .legend h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+        }
+        .legend-item span:last-child {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Loading popup styles */
+        .loading-popup {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
+            display: none; /* Hidden by default */
         }
-        .fake-call-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
+        
+        .loading-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .end-call-btn {
-            background-color: #dc3545;
+        
+        .loading-message {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Report modal styles */
+        .report-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        
+        .report-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .report-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .report-textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        
+        .report-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .report-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .cancel-button {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        
+        .submit-button {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .cancel-button:hover {
+            background-color: #d1d1d1;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .left-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .right-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #report-btn {
+            background-color: #ff3b30;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
         }
-        .end-call-btn:hover {
-            background-color: #c82333;
+        
+        #report-btn:hover {
+            background-color: #d63026;
+        }
+        
+        #report-btn i {
+            font-size: 16px;
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
@@ -160,7 +622,10 @@
             // Add event listener for "Enter" key
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter') {
-                    updateMap();
+                    updateMap().catch(error => {
+                        console.error('Error updating map:', error);
+                        alert('An error occurred while updating the map. Please try again.');
+                    });
                 }
             });
         }
@@ -177,9 +642,160 @@
             // Clear all custom overlays
             customOverlays.forEach(overlay => overlay.setMap(null));
             customOverlays = [];
+
+            // Clear route info container
+            const routeInfoContainer = document.getElementById('routeInfoContainer');
+            if (routeInfoContainer) {
+                routeInfoContainer.innerHTML = '';
+            }
+            
+            // Hide the legend
+            const legend = document.querySelector('.legend');
+            if (legend) {
+                legend.style.display = 'none';
+            }
         }
 
-        function updateMap() {
+        async function calculateRouteScores(routes) {
+            try {
+                // Show loading popup with changing messages
+                showLoadingPopup();
+                
+                // Format the routes data to match the backend's expected structure
+                const formattedRoutes = [];
+                
+                // Use for...of instead of forEach to properly handle async operations
+                for (const route of routes) {
+                    // Create a deep copy of the route to avoid modifying the original
+                    const formattedRoute = JSON.parse(JSON.stringify(route));
+                    
+                    console.log("Original route:", formattedRoute);
+                    
+                    // Ensure the route has the required structure
+                    if (!formattedRoute.legs) {
+                        formattedRoute.legs = [];
+                    }
+                    
+                    // Process each leg
+                    for (const leg of formattedRoute.legs) {
+                        if (!leg.steps) {
+                            leg.steps = [];
+                        }
+                        
+                        // Process each step
+                        for (const step of leg.steps) {
+                            // Ensure start_location and end_location have lat and lng properties
+                            if (step.start_location) {
+                                if (typeof step.start_location.lat === 'function') {
+                                    step.start_location.lat = step.start_location.lat();
+                                }
+                                if (typeof step.start_location.lng === 'function') {
+                                    step.start_location.lng = step.start_location.lng();
+                                }
+                            }
+                            
+                            if (step.end_location) {
+                                if (typeof step.end_location.lat === 'function') {
+                                    step.end_location.lat = step.end_location.lat();
+                                }
+                                if (typeof step.end_location.lng === 'function') {
+                                    step.end_location.lng = step.end_location.lng();
+                                }
+                            }
+                            
+                            // Add html_instructions if missing
+                            if (!step.html_instructions && step.instructions) {
+                                step.html_instructions = step.instructions;
+                            }
+                            
+                            // Ensure travel_mode is present
+                            if (!step.travel_mode) {
+                                step.travel_mode = 'WALKING';
+                            }
+                        }
+                    }
+                    
+                    // Handle overview_polyline - it might be a string or an object with a points property
+                    if (formattedRoute.overview_polyline) {
+                        if (typeof formattedRoute.overview_polyline === 'string') {
+                            // Keep it as a string
+                            console.log("overview_polyline is a string:", formattedRoute.overview_polyline);
+                        } else if (formattedRoute.overview_polyline.points) {
+                            // If it's an object with a points property, use that
+                            formattedRoute.overview_polyline = formattedRoute.overview_polyline.points;
+                            console.log("overview_polyline points:", formattedRoute.overview_polyline);
+                        }
+                    }
+                    
+                    formattedRoutes.push(formattedRoute);
+                }
+                
+                console.log("Sending formatted routes to backend:", JSON.stringify(formattedRoutes, null, 2));
+                
+                // First, send to debug endpoint to understand the data structure
+                try {
+                    const debugResponse = await fetch('http://localhost:8000/debug_request', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ routes: formattedRoutes })
+                    });
+                    
+                    if (debugResponse.ok) {
+                        const debugData = await debugResponse.json();
+                        console.log("Debug response:", debugData);
+                    } else {
+                        const errorText = await debugResponse.text();
+                        console.error("Debug request failed:", errorText);
+                    }
+                } catch (debugError) {
+                    console.error("Debug request failed:", debugError);
+                }
+                
+                // Now send to the actual endpoint
+                const response = await fetch('http://localhost:8000/calculate_route_scores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ routes: formattedRoutes })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Backend error response:", errorText);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Received enriched routes from backend:", data.routes);
+                
+                // Log the component scores for debugging
+                data.routes.forEach((route, index) => {
+                    console.log(`Route ${index + 1} safety score: ${route.safety_score}`);
+                    console.log(`Route ${index + 1} keys:`, Object.keys(route));
+                });
+                
+                // Hide loading popup
+                hideLoadingPopup();
+                
+                return data.routes;
+            } catch (error) {
+                console.error('Error calculating route scores:', error);
+                // Hide loading popup in case of error
+                hideLoadingPopup();
+                return null;
+            }
+        }
+
+        function getSafetyClass(score) {
+            if (score >= 70) return 'safe';
+            if (score >= 40) return 'moderate';
+            return 'unsafe';
+        }
+
+        async function updateMap() {
             const currentLocation = document.getElementById('currentLocation').value;
             const destination = document.getElementById('destination').value;
 
@@ -200,14 +816,78 @@
                 clearMap();
 
                 // Request directions and display all routes
-                directionsService.route(request, (result, status) => {
+                directionsService.route(request, async (result, status) => {
                     if (status === 'OK') {
                         const routes = result.routes;
+                        
+                        // Calculate safety scores for all routes
+                        const enrichedRoutes = await calculateRouteScores(routes);
+                        
+                        if (!enrichedRoutes) {
+                            alert('Failed to calculate safety scores. Please try again.');
+                            return;
+                        }
 
+                        // Sort routes by safety score (highest to lowest)
+                        const sortedRoutes = [...enrichedRoutes].sort((a, b) => b.safety_score - a.safety_score);
+                        
+                        // Create container for route information
+                        const routeInfoContainer = document.createElement('div');
+                        routeInfoContainer.id = 'routeInfoContainer';
+                        routeInfoContainer.className = 'route-info';
+                        document.querySelector('.controls').appendChild(routeInfoContainer);
+
+                        // Function to get color based on safety score and position in sorted list
+                        function getRouteColor(route, index, totalRoutes) {
+                            if (totalRoutes <= 1) return '#006400'; // Dark green for single route
+                            
+                            // Calculate position in the gradient (0 to 1)
+                            const position = index / (totalRoutes - 1);
+                            
+                            // Convert position to color (dark green to light red)
+                            if (position <= 0.2) {
+                                // Dark green
+                                return '#006400';
+                            } else if (position <= 0.4) {
+                                // Green
+                                return '#00FF00';
+                            } else if (position <= 0.6) {
+                                // Yellow
+                                return '#FFFF00';
+                            } else if (position <= 0.8) {
+                                // Orange
+                                return '#FFA500';
+                            } else {
+                                // Red
+                                return '#FF0000';
+                            }
+                        }
+                        
+                        // Track which colors are actually used
+                        const usedColors = new Set();
+                        
                         // Loop through all routes and display them
-                        routes.forEach((route, index) => {
+                        sortedRoutes.forEach((route, index) => {
+                            const safetyScore = route.safety_score;
+                            const originalIndex = enrichedRoutes.findIndex(r => r === route);
+                            
+                            // We're removing the route information display above the map
+                            // The route details will only be shown on the map itself
+
+                            // Get color based on safety score and position
+                            const routeColor = getRouteColor(route, index, sortedRoutes.length);
+                            
+                            // Add this color to the set of used colors
+                            usedColors.add(routeColor);
+
+                            // Check if the route has overview_path
+                            if (!routes[originalIndex] || !routes[originalIndex].overview_path) {
+                                console.error(`Route ${originalIndex} does not have overview_path`);
+                                return; // Skip this route
+                            }
+
                             // Offset the route path slightly to distinguish overlapping routes
-                            const offsetPath = route.overview_path.map((latLng, i) => {
+                            const offsetPath = routes[originalIndex].overview_path.map((latLng, i) => {
                                 const offsetFactor = index * 0.0001;
                                 return new google.maps.LatLng(
                                     latLng.lat() + offsetFactor,
@@ -215,54 +895,94 @@
                                 );
                             });
 
-                            // Create a polyline for the route
+                            // Create a polyline for the route with color based on safety score
                             const polyline = new google.maps.Polyline({
-                                path: offsetPath, // Use the offset path
-                                strokeColor: index === 0 ? '#0000FF' : '#FF0000', // Blue for the best route, red for others
-                                strokeOpacity: 0.7,
-                                strokeWeight: 5, // Uniform stroke weight for all routes
+                                path: offsetPath,
+                                strokeColor: routeColor,
+                                strokeOpacity: 0.8,
+                                strokeWeight: 6,
                                 map: map
                             });
                             polylines.push(polyline);
 
-                            // Add markers for start (current location) and end (destination) points
-                            const startLatLng = route.legs[0].start_location;
-                            const endLatLng = route.legs[0].end_location;
-
+                            console.log("Route:", route);
+                            console.log("Route legs:", route.legs);
+                            
+                            // Add markers for start and end points
+                            let startLatLng, endLatLng;
+                            
+                            if (route.legs && route.legs.length > 0) {
+                                if (route.legs[0].start_location) {
+                                    startLatLng = route.legs[0].start_location;
+                                }
+                                
+                                if (route.legs[0].end_location) {
+                                    endLatLng = route.legs[0].end_location;
+                                }
+                            }
+                            
+                            // Only add markers if we have valid locations
+                            if (startLatLng) {
                             const startMarker = new google.maps.Marker({
                                 position: startLatLng,
                                 map: map,
-                                title: `Start of Route ${index + 1}`,
+                                    title: `Start of Route ${originalIndex + 1}`,
                                 icon: {
                                     url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                                     scaledSize: new google.maps.Size(32, 32)
                                 }
                             });
                             markers.push(startMarker);
+                            }
 
+                            if (endLatLng) {
                             const endMarker = new google.maps.Marker({
                                 position: endLatLng,
                                 map: map,
-                                title: `End of Route ${index + 1}`,
+                                    title: `End of Route ${originalIndex + 1}`,
                                 icon: {
                                     url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
                                     scaledSize: new google.maps.Size(32, 32)
                                 }
                             });
                             markers.push(endMarker);
+                            }
 
-                            // Display route details (distance and duration) near the route
-                            const distance = route.legs[0].distance.text;
-                            let duration = route.legs[0].duration.text;
-
-                            // Format the duration to "5h 8m"
-                            duration = duration.replace('hours', 'h').replace('mins', 'm').replace(' ', '');
+                            // Display route details near the route
+                            let distance = "Distance unknown";
+                            let duration = "Duration unknown";
+                            
+                            // Check for duration in the enriched route
+                            if (route.legs && route.legs.length > 0) {
+                                if (route.legs[0].distance) {
+                                    distance = route.legs[0].distance.text || "Distance unknown";
+                                }
+                                
+                                if (route.legs[0].duration) {
+                                    duration = route.legs[0].duration.text || "Duration unknown";
+                                    duration = duration.replace('hours', 'h').replace('mins', 'm').replace(' ', '');
+                                }
+                            }
+                            
+                            // Log duration for debugging
+                            console.log(`Route ${originalIndex + 1} duration: ${duration}`);
+                            
+                            // Log all legs and their durations for debugging
+                            if (route.legs) {
+                                route.legs.forEach((leg, legIdx) => {
+                                    if (leg.duration) {
+                                        console.log(`Route ${originalIndex + 1}, Leg ${legIdx + 1} duration: ${leg.duration.text}`);
+                                    } else {
+                                        console.log(`Route ${originalIndex + 1}, Leg ${legIdx + 1} has no duration`);
+                                    }
+                                });
+                            }
 
                             // Adjust the position of the label to avoid overlapping
-                            const offset = Math.floor(route.overview_path.length / 3) + index * 10;
-                            const labelPosition = route.overview_path[offset] || route.overview_path[Math.floor(route.overview_path.length / 3)];
+                            const offset = Math.floor(routes[originalIndex].overview_path.length / 3) + index * 10;
+                            const labelPosition = routes[originalIndex].overview_path[offset] || routes[originalIndex].overview_path[Math.floor(routes[originalIndex].overview_path.length / 3)];
 
-                            // Create a custom div for the route time
+                            // Create a custom div for the route time and safety score
                             const customLabel = document.createElement('div');
                             customLabel.style.position = 'absolute';
                             customLabel.style.background = 'white';
@@ -272,10 +992,15 @@
                             customLabel.style.fontWeight = 'bold';
                             customLabel.style.borderRadius = '5px';
                             customLabel.style.boxShadow = '0px 2px 6px rgba(0, 0, 0, 0.3)';
-                            customLabel.innerHTML = `<div style="text-align: center;">
-                                                       <span>${duration}</span>
+                            customLabel.innerHTML = `
+                                <div style="text-align: center;">
+                                    <div>${duration}</div>
+                                    <div class="safety-indicator ${getSafetyClass(safetyScore)}" style="font-size: 9px; margin-top: 2px;">
+                                        Safety: ${safetyScore}%
+                                    </div>
                                                        <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
-                                                     </div>`;
+                                </div>
+                            `;
 
                             // Create a custom overlay for the label
                             const customOverlay = new google.maps.OverlayView();
@@ -293,7 +1018,7 @@
                                 customLabel.parentNode.removeChild(customLabel);
                             };
                             customOverlay.setMap(map);
-                            customOverlays.push(customOverlay); // Store the custom overlay
+                            customOverlays.push(customOverlay);
                         });
 
                         // Fit the map to show all routes
@@ -302,6 +1027,9 @@
                             route.overview_path.forEach(point => bounds.extend(point));
                         });
                         map.fitBounds(bounds);
+                        
+                        // Update the legend to show only used colors
+                        updateLegend(usedColors);
                     } else {
                         alert('Failed to get directions: ' + status);
                     }
@@ -310,153 +1038,278 @@
                 alert('Please enter both current location and destination.');
             }
         }
-    </script>
-    <script>
-        let audio = null;
-        let isSpeaking = false; // Track if speech synthesis is active
+        
+        // Function to update the legend based on used colors
+        function updateLegend(usedColors) {
+            const legend = document.querySelector('.legend');
+            if (!legend) return;
+            
+            // Clear existing legend items except the title
+            const legendTitle = legend.querySelector('h3');
+            legend.innerHTML = '';
+            if (legendTitle) {
+                legend.appendChild(legendTitle);
+            } else {
+                const title = document.createElement('h3');
+                title.textContent = 'Route Safety Legend';
+                legend.appendChild(title);
+            }
+            
+            // Define color labels
+            const colorLabels = {
+                '#006400': 'Highest Safety',
+                '#00FF00': 'High Safety',
+                '#FFFF00': 'Medium Safety',
+                '#FFA500': 'Low Safety',
+                '#FF0000': 'Lowest Safety'
+            };
+            
+            // Add only the used colors to the legend
+            usedColors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                
+                const colorBox = document.createElement('span');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = color;
+                
+                const label = document.createElement('span');
+                label.textContent = colorLabels[color] || 'Safety';
+                
+                item.appendChild(colorBox);
+                item.appendChild(label);
+                legend.appendChild(item);
+            });
+            
+            // Show the legend
+            legend.style.display = 'block';
+        }
 
-        async function fetchFakeCallScript() {
+        // Function to show loading popup with changing messages
+        function showLoadingPopup() {
+            // Create loading popup if it doesn't exist
+            let loadingPopup = document.getElementById('loadingPopup');
+            if (!loadingPopup) {
+                loadingPopup = document.createElement('div');
+                loadingPopup.id = 'loadingPopup';
+                loadingPopup.className = 'loading-popup';
+                loadingPopup.innerHTML = `
+                    <div class="loading-content">
+                        <div class="loading-message" id="loadingMessage">Getting your safest path...</div>
+                        <div class="loading-spinner"></div>
+                    </div>
+                `;
+                document.body.appendChild(loadingPopup);
+            }
+            
+            // Show the popup
+            loadingPopup.style.display = 'flex';
+            
+            // Set up message rotation
+            const messages = [
+                "Getting your safest path...",
+                "Almost there!",
+                "Your safety is our priority",
+                "Analyzing route safety factors...",
+                "Finding the most secure path for you..."
+            ];
+            
+            let messageIndex = 0;
+            const loadingMessage = document.getElementById('loadingMessage');
+            
+            // Change message every 3 seconds
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                loadingMessage.textContent = messages[messageIndex];
+            }, 3000);
+            
+            // Store the interval ID in the popup element for later clearing
+            loadingPopup.dataset.messageInterval = messageInterval;
+        }
+        
+        // Function to hide loading popup
+        function hideLoadingPopup() {
+            const loadingPopup = document.getElementById('loadingPopup');
+            if (loadingPopup) {
+                // Clear the message rotation interval
+                const messageInterval = loadingPopup.dataset.messageInterval;
+                if (messageInterval) {
+                    clearInterval(parseInt(messageInterval));
+                }
+                
+                // Hide the popup
+                loadingPopup.style.display = 'none';
+            }
+        }
+        
+        // Function to show report modal
+        function showReportModal() {
+            const reportModal = document.getElementById('reportModal');
+            if (reportModal) {
+                reportModal.style.display = 'flex';
+            }
+        }
+        
+        // Function to hide report modal
+        function hideReportModal() {
+            const reportModal = document.getElementById('reportModal');
+            if (reportModal) {
+                reportModal.style.display = 'none';
+                // Clear the textarea
+                const incidentReport = document.getElementById('incidentReport');
+                if (incidentReport) {
+                    incidentReport.value = '';
+                }
+            }
+        }
+        
+        // Function to submit report
+        async function submitReport() {
+            const incidentReport = document.getElementById('incidentReport');
+            const reportText = incidentReport.value.trim();
+            
+            if (!reportText) {
+                alert('Please provide details about the incident.');
+                return;
+            }
+            
             try {
-                const res = await fetch("http://localhost:8000/fake-call", {
-                //const res = await fetch("http://localhost:8000/fake-call/audio", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
+                // Get current location if available
+                let currentLocation = '';
+                const currentLocationInput = document.getElementById('currentLocation');
+                if (currentLocationInput) {
+                    currentLocation = currentLocationInput.value.trim();
+                }
+                
+                // Get destination if available
+                let destination = '';
+                const destinationInput = document.getElementById('destination');
+                if (destinationInput) {
+                    destination = destinationInput.value.trim();
+                }
+                
+                // Get current map center if available
+                let latitude = 0;
+                let longitude = 0;
+                if (map) {
+                    const center = map.getCenter();
+                    if (center) {
+                        latitude = center.lat();
+                        longitude = center.lng();
+                    }
+                }
+                
+                // Create report data
+                const reportData = {
+                    description: reportText,
+                    location: {
+                        name: currentLocation || destination || 'Unknown',
+                        coordinates: {
+                            latitude: latitude,
+                            longitude: longitude
+                        }
                     },
-                    body: JSON.stringify({
-                        context: "Act like a protective dad calling his daughter who may be in danger."
-                    })
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Show loading popup
+                showLoadingPopup();
+                
+                // Send report to backend
+                const response = await fetch('http://localhost:8000/submit_incident_report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(reportData)
                 });
 
-                // Check if the response is JSON
-                const contentType = res.headers.get("Content-Type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await res.json();
-                    console.log("Gemini response:", data.message);
-
-                    // Return a longer script
-                    return (
-                        data.message +
-                        " Remember, if you ever feel unsafe, just let me know. " +
-                        "I'm always here for you, no matter what. " +
-                        "Stay alert, stay safe, and call me if you need anything. " +
-                        "I love you, sweetheart."
-                    );
+                // First, hide all modals and popups
+                hideLoadingPopup();
+                hideReportModal();
+                
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Then show the appropriate message
+                if (response.ok) {
+                    alert('Thank you for your report. It has been submitted successfully.');
                 } else {
-                    // Handle non-JSON response
-                    const text = await res.text();
-                    console.warn("Non-JSON response received:", text);
-                    return (
-                        "Hi sweetheart, just checking in. Are you okay? " +
-                        "Remember, if you ever feel unsafe, just let me know. " +
-                        "I'm always here for you, no matter what. " +
-                        "Stay alert, stay safe, and call me if you need anything. " +
-                        "I love you, sweetheart."
-                    );
+                    const errorData = await response.json();
+                    alert(`Failed to submit report: ${errorData.detail || 'Unknown error'}`);
                 }
-            } catch (err) {
-                console.error("Failed to fetch fake call script:", err);
-                return (
-                    "Hi sweetheart, just checking in. Are you okay? " +
-                    "Remember, if you ever feel unsafe, just let me know. " +
-                    "I'm always here for you, no matter what. " +
-                    "Stay alert, stay safe, and call me if you need anything. " +
-                    "I love you, sweetheart."
-                );
+            } catch (error) {
+                console.error('Error submitting report:', error);
+                // Make sure to hide all modals and popups
+                hideLoadingPopup();
+                hideReportModal();
+                
+                // Small delay to ensure UI is updated
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                alert('An error occurred while submitting your report. Please try again later.');
             }
         }
-
-        function speakText(text) {
-            console.log("🔊 Speaking text:", text);
-
-            const utterance = new SpeechSynthesisUtterance(text);
-
-            const voices = speechSynthesis.getVoices();
-            console.log("🗣️ Available voices:", voices);
-
-            const voice = voices.find(v =>
-                v.name.includes("Google UK English Male") || v.name.toLowerCase().includes("daniel")
-            );
-            if (voice) {
-                utterance.voice = voice;
-                console.log("✅ Using voice:", voice.name);
-            } else {
-                console.warn("⚠️ Preferred voice not found. Using default voice.");
-            }
-
-            utterance.rate = 1;
-
-            // Set a flag to indicate speech synthesis is active
-            isSpeaking = true;
-
-            // When speech ends, reset the flag
-            utterance.onend = () => {
-                isSpeaking = false;
-                console.log("Speech synthesis ended.");
-            };
-
-            speechSynthesis.speak(utterance);
-        }
-
-        function stopSpeechAndNavigate() {
-            // Stop speech synthesis
-            if (isSpeaking) {
-                speechSynthesis.cancel();
-                isSpeaking = false; // Reset the flag
-                console.log("Speech synthesis stopped.");
-            }
-
-            // Stop audio playback if it exists
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
-                audio = null;
-            }
-
-            // Navigate to the home page
-            window.location.href = "index.html"; // Replace with the correct home page URL if different
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const fakeCallBtn = document.getElementById('fakeCallBtn');
-            const fakeCallView = document.getElementById('fakeCallView');
-            const endCallBtn = document.getElementById('endCallBtn');
-
-            fakeCallBtn.addEventListener('click', async () => {
-                fakeCallView.style.display = 'flex';
-                const script = await fetchFakeCallScript();
-                speakText(script);
-            });
-
-            endCallBtn.addEventListener('click', () => {
-                fakeCallView.style.display = 'none';
-                stopSpeechAndNavigate();
-            });
-
-            // Trigger voice preload
-            window.speechSynthesis.getVoices();
-        });
     </script>
 </head>
 <body onload="initMap()">
     <div class="header">
         <h1>Wavelly - Safe Navigation</h1>
-        <div>
-            <button id="fakeCallBtn" class="fake-call-btn">&#128222;</button>
-            <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
-        </div>
+        <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
     </div>
     <div class="controls">
-        <input type="text" id="currentLocation" placeholder="Enter your current location" />
-        <input type="text" id="destination" placeholder="Enter your destination" />
-        <button onclick="updateMap()">Get Routes</button>
+        <div class="input-group">
+            <input type="text" id="currentLocation" placeholder="Current Location">
+            <input type="text" id="destination" placeholder="Destination">
+        </div>
+        <div class="button-container">
+            <div class="left-buttons">
+                <button id="get-routes-btn" onclick="updateMap()">Get Routes</button>
+            </div>
+            <div class="right-buttons">
+                <button id="report-btn" onclick="showReportModal()">
+                    <i class="fas fa-exclamation-triangle"></i> Report Incident
+                </button>
+            </div>
+        </div>
+        <div id="routeInfoContainer" class="route-info"></div>
     </div>
-    <div id="map"></div>
-    <div id="fakeCallView" class="fake-call-view" style="display: none;">
-        <div class="fake-call-content">
-            <h2>Incoming Call...</h2>
-            <p>Caller: Dad</p>
-            <button id="endCallBtn" class="end-call-btn">End Call</button>
+    <div class="map-container">
+        <div id="map"></div>
+        <div class="legend">
+            <h3>Route Safety Legend</h3>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #006400;"></span>
+                <span>Highest Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #00FF00;"></span>
+                <span>High Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FFFF00;"></span>
+                <span>Medium Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FFA500;"></span>
+                <span>Low Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FF0000;"></span>
+                <span>Lowest Safety</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-content">
+            <div class="report-title">Report an Incident</div>
+            <textarea id="incidentReport" class="report-textarea" placeholder="Please describe the incident in detail..."></textarea>
+            <div class="report-buttons">
+                <button class="report-button cancel-button" onclick="hideReportModal()">Cancel</button>
+                <button class="report-button submit-button" onclick="submitReport()">Submit</button>
+            </div>
         </div>
     </div>
 </body>

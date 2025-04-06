@@ -285,49 +285,6 @@
         #report-btn i {
             font-size: 16px;
         }
-        .fake-call-btn {
-             background-color: #28a745;
-             color: white;
-             border: none;
-             border-radius: 4px;
-             padding: 10px 20px;
-             cursor: pointer;
-             margin-right: 10px;
-         }
-         .fake-call-btn:hover {
-             background-color: #218838;
-         }
-         .fake-call-view {
-             position: fixed;
-             top: 0;
-             left: 0;
-             width: 100%;
-             height: 100%;
-             background-color: rgba(0, 0, 0, 0.8);
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             z-index: 1000;
-         }
-         .fake-call-content {
-             background: white;
-             padding: 20px;
-             border-radius: 8px;
-             text-align: center;
-             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-         }
-         .end-call-btn {
-             background-color: #dc3545;
-             color: white;
-             border: none;
-             border-radius: 4px;
-             padding: 10px 20px;
-             cursor: pointer;
-             margin-top: 10px;
-         }
-         .end-call-btn:hover {
-             background-color: #c82333;
-         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
@@ -356,21 +313,6 @@
                 window.location.href = '../src/signin.html';
             }).catch((error) => {
                 console.error('Error signing out:', error);
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const fakeCallBtn = document.getElementById('fakeCallBtn');
-            const fakeCallView = document.getElementById('fakeCallView');
-            const endCallBtn = document.getElementById('endCallBtn');
-
-            fakeCallBtn.addEventListener('click', () => {
-                fakeCallView.style.display = 'flex';
-            });
-
-            endCallBtn.addEventListener('click', () => {
-                fakeCallView.style.display = 'none';
             });
         });
     </script>
@@ -1040,10 +982,7 @@
 <body onload="initMap()">
     <div class="header">
         <h1>Wavelly - Safe Navigation</h1>
-        <div>
-            <button id="fakeCallBtn" class="fake-call-btn">&#128222;</button>
-            <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
-        </div>
+        <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
     </div>
     <div class="controls">
         <div class="input-group">
@@ -1098,13 +1037,6 @@
                 <button class="report-button cancel-button" onclick="hideReportModal()">Cancel</button>
                 <button class="report-button submit-button" onclick="submitReport()">Submit</button>
             </div>
-        </div>
-    </div>
-    <div id="fakeCallView" class="fake-call-view" style="display: none;">
-        <div class="fake-call-content">
-            <h2>Incoming Call...</h2>
-            <p>Caller: Emergency Services</p>
-            <button id="endCallBtn" class="end-call-btn">End Call</button>
         </div>
     </div>
 </body>

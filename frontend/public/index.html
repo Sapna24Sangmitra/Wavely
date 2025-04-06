@@ -95,6 +95,37 @@
             background-color: #dc3545;
             color: white;
         }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none; /* Hide legend by default */
+        }
+        .legend h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+        }
+        .legend-item span:last-child {
+            font-size: 12px;
+            color: #666;
+        }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqtW2perb-Qq5FLA_g395hPemx8erwWsA&libraries=places&callback=initMap" loading="lazy"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
@@ -184,6 +215,12 @@
             const routeInfoContainer = document.getElementById('routeInfoContainer');
             if (routeInfoContainer) {
                 routeInfoContainer.innerHTML = '';
+            }
+            
+            // Hide the legend
+            const legend = document.querySelector('.legend');
+            if (legend) {
+                legend.style.display = 'none';
             }
         }
 
@@ -368,22 +405,27 @@
                             const position = index / (totalRoutes - 1);
                             
                             // Convert position to color (dark green to light red)
-                            if (position <= 0.5) {
-                                // Dark green to light green
-                                const r = Math.round(0 * (1 - position * 2));
-                                const g = Math.round(100 + 155 * (1 - position * 2));
-                                const b = Math.round(0 * (1 - position * 2));
-                                return `rgb(${r}, ${g}, ${b})`;
+                            if (position <= 0.2) {
+                                // Dark green
+                                return '#006400';
+                            } else if (position <= 0.4) {
+                                // Green
+                                return '#00FF00';
+                            } else if (position <= 0.6) {
+                                // Yellow
+                                return '#FFFF00';
+                            } else if (position <= 0.8) {
+                                // Orange
+                                return '#FFA500';
                             } else {
-                                // Light green to light red
-                                const adjustedPosition = (position - 0.5) * 2; // 0 to 1
-                                const r = Math.round(255 * adjustedPosition);
-                                const g = Math.round(255 * (1 - adjustedPosition));
-                                const b = Math.round(0 * (1 - adjustedPosition));
-                                return `rgb(${r}, ${g}, ${b})`;
+                                // Red
+                                return '#FF0000';
                             }
                         }
-
+                        
+                        // Track which colors are actually used
+                        const usedColors = new Set();
+                        
                         // Loop through all routes and display them
                         sortedRoutes.forEach((route, index) => {
                             const safetyScore = route.safety_score;
@@ -394,6 +436,9 @@
 
                             // Get color based on safety score and position
                             const routeColor = getRouteColor(route, index, sortedRoutes.length);
+                            
+                            // Add this color to the set of used colors
+                            usedColors.add(routeColor);
 
                             // Check if the route has overview_path
                             if (!routes[originalIndex] || !routes[originalIndex].overview_path) {
@@ -542,6 +587,9 @@
                             route.overview_path.forEach(point => bounds.extend(point));
                         });
                         map.fitBounds(bounds);
+                        
+                        // Update the legend to show only used colors
+                        updateLegend(usedColors);
                     } else {
                         alert('Failed to get directions: ' + status);
                     }
@@ -549,6 +597,52 @@
             } else {
                 alert('Please enter both current location and destination.');
             }
+        }
+        
+        // Function to update the legend based on used colors
+        function updateLegend(usedColors) {
+            const legend = document.querySelector('.legend');
+            if (!legend) return;
+            
+            // Clear existing legend items except the title
+            const legendTitle = legend.querySelector('h3');
+            legend.innerHTML = '';
+            if (legendTitle) {
+                legend.appendChild(legendTitle);
+            } else {
+                const title = document.createElement('h3');
+                title.textContent = 'Route Safety Legend';
+                legend.appendChild(title);
+            }
+            
+            // Define color labels
+            const colorLabels = {
+                '#006400': 'Highest Safety',
+                '#00FF00': 'High Safety',
+                '#FFFF00': 'Medium Safety',
+                '#FFA500': 'Low Safety',
+                '#FF0000': 'Lowest Safety'
+            };
+            
+            // Add only the used colors to the legend
+            usedColors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                
+                const colorBox = document.createElement('span');
+                colorBox.className = 'color-box';
+                colorBox.style.backgroundColor = color;
+                
+                const label = document.createElement('span');
+                label.textContent = colorLabels[color] || 'Safety';
+                
+                item.appendChild(colorBox);
+                item.appendChild(label);
+                legend.appendChild(item);
+            });
+            
+            // Show the legend
+            legend.style.display = 'block';
         }
     </script>
 </head>
@@ -562,6 +656,31 @@
         <input type="text" id="destination" placeholder="Enter your destination" />
         <button onclick="updateMap()">Get Routes</button>
     </div>
-    <div id="map"></div>
+    <div class="map-container">
+        <div id="map"></div>
+        <div class="legend">
+            <h3>Route Safety Legend</h3>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #006400;"></span>
+                <span>Highest Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #00FF00;"></span>
+                <span>High Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FFFF00;"></span>
+                <span>Medium Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FFA500;"></span>
+                <span>Low Safety</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-box" style="background-color: #FF0000;"></span>
+                <span>Lowest Safety</span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

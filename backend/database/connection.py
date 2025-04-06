@@ -1,10 +1,28 @@
 from pymongo import MongoClient
 
-# MongoDB Atlas connection string
+# MongoDB connection string (replace with your connection details)
 uri = "mongodb+srv://wavelyuser:Sjsu2025@cluster0.wootyit.mongodb.net/"
-
-# Connect to the MongoDB cluster
 client = MongoClient(uri)
 
-# Check if the connection was successful by listing databases
-print(client.list_database_names())
+# Access the database and collection
+db = client["wavelly"]
+collection = db["crime_reports"]
+
+# Update the documents to include the 'location' field in GeoJSON format
+update_result = collection.update_many(
+    {},
+    [
+        {
+            "$set": {
+                "location": {
+                    "type": "Point",
+                    "coordinates": ["$lng", "$lat"]  # Reference the 'lng' and 'lat' fields
+                }
+            }
+        }
+    ]
+)
+
+# Print the result
+print(f"Matched {update_result.matched_count} documents.")
+print(f"Modified {update_result.modified_count} documents.")

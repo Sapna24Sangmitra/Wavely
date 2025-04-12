@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wavelly - Safe Navigation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input {
+            width: 200px;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sign-out-btn {
+            background-color: #dc3545;
+        }
+        .sign-out-btn:hover {
+            background-color: #c82333;
+        }
+        .fake-call-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .fake-call-btn:hover {
+            background-color: #218838;
+        }
+        .fake-call-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .fake-call-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .end-call-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .end-call-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_KEY&libraries=places&callback=initMap" loading="lazy"></script>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "wavelly-c1bb1.firebaseapp.com",
+            projectId: "wavelly-c1bb1",
+            storageBucket: "wavelly-c1bb1.appspot.com",
+            messagingSenderId: "577295200107",
+            appId: "1:577295200107:web:d00ad29fb8b193715ba62e",
+            measurementId: "G-QZ9GR8CKCR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('signOutBtn').addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    window.location.href = '../src/signin.html';
+                }).catch((error) => {
+                    console.error('Error signing out:', error);
+                });
+            });
+        });
+    </script>
+
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let polylines = [];
+        let markers = [];
+        let customOverlays = [];
+        let autocompleteStart, autocompleteEnd;
+        let audio = null; // Track audio player
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 37.7749, lng: -122.4194 },
+                zoom: 12
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressPolylines: true,
+                suppressMarkers: true
+            });
+
+            const startInput = document.getElementById('currentLocation');
+            const endInput = document.getElementById('destination');
+            autocompleteStart = new google.maps.places.Autocomplete(startInput);
+            autocompleteEnd = new google.maps.places.Autocomplete(endInput);
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    updateMap();
+                }
+            });
+        }
+
+        function clearMap() {
+            polylines.forEach(polyline => polyline.setMap(null));
+            polylines = [];
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            customOverlays.forEach(overlay => overlay.setMap(null));
+            customOverlays = [];
+        }
+
+        function updateMap() {
+            const currentLocation = document.getElementById('currentLocation').value;
+            const destination = document.getElementById('destination').value;
+
+            if (currentLocation === destination) {
+                alert('Current location and destination cannot be the same.');
+                return;
+            }
+
+            if (currentLocation && destination) {
+                const request = {
+                    origin: currentLocation,
+                    destination: destination,
+                    travelMode: 'WALKING',
+                    provideRouteAlternatives: true
+                };
+
+                clearMap();
+
+                directionsService.route(request, (result, status) => {
+                    if (status === 'OK') {
+                        const routes = result.routes;
+                        routes.forEach((route, index) => {
+                            const offsetPath = route.overview_path.map((latLng, i) => {
+                                const offsetFactor = index * 0.0001;
+                                return new google.maps.LatLng(
+                                    latLng.lat() + offsetFactor,
+                                    latLng.lng() + offsetFactor
+                                );
+                            });
+
+                            const polyline = new google.maps.Polyline({
+                                path: offsetPath,
+                                strokeColor: index === 0 ? '#0000FF' : '#FF0000',
+                                strokeOpacity: 0.7,
+                                strokeWeight: 5,
+                                map: map
+                            });
+                            polylines.push(polyline);
+
+                            const startMarker = new google.maps.Marker({
+                                position: route.legs[0].start_location,
+                                map: map,
+                                icon: {
+                                    url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                                    scaledSize: new google.maps.Size(32, 32)
+                                }
+                            });
+                            markers.push(startMarker);
+
+                            const endMarker = new google.maps.Marker({
+                                position: route.legs[0].end_location,
+                                map: map,
+                                icon: {
+                                    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                                    scaledSize: new google.maps.Size(32, 32)
+                                }
+                            });
+                            markers.push(endMarker);
+
+                            const duration = route.legs[0].duration.text
+                                .replace('hours', 'h').replace('mins', 'm').replace(' ', '');
+
+                            const offset = Math.floor(route.overview_path.length / 3) + index * 10;
+                            const labelPosition = route.overview_path[offset] || route.overview_path[Math.floor(route.overview_path.length / 3)];
+
+                            const customLabel = document.createElement('div');
+                            customLabel.style.position = 'absolute';
+                            customLabel.style.background = 'white';
+                            customLabel.style.border = '1px solid black';
+                            customLabel.style.padding = '5px';
+                            customLabel.style.fontSize = '10px';
+                            customLabel.style.fontWeight = 'bold';
+                            customLabel.style.borderRadius = '5px';
+                            customLabel.style.boxShadow = '0px 2px 6px rgba(0, 0, 0, 0.3)';
+                            customLabel.innerHTML = `<div style="text-align: center;">
+                                <span>${duration}</span>
+                                <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid black; margin: auto;"></div>
+                            </div>`;
+
+                            const customOverlay = new google.maps.OverlayView();
+                            customOverlay.onAdd = function () {
+                                this.getPanes().overlayLayer.appendChild(customLabel);
+                            };
+                            customOverlay.draw = function () {
+                                const projection = this.getProjection();
+                                const position = projection.fromLatLngToDivPixel(labelPosition);
+                                customLabel.style.left = position.x + 'px';
+                                customLabel.style.top = position.y + 'px';
+                            };
+                            customOverlay.onRemove = function () {
+                                if (customLabel.parentNode) {
+                                    customLabel.parentNode.removeChild(customLabel);
+                                }
+                            };
+                            customOverlay.setMap(map);
+                            customOverlays.push(customOverlay);
+                        });
+
+                        const bounds = new google.maps.LatLngBounds();
+                        routes.forEach(route => {
+                            route.overview_path.forEach(point => bounds.extend(point));
+                        });
+                        map.fitBounds(bounds);
+                    } else {
+                        alert('Failed to get directions: ' + status);
+                    }
+                });
+            } else {
+                alert('Please enter both current location and destination.');
+            }
+        }
+
+        async function fetchFakeCallAudio() {
+            try {
+                const res = await fetch("http://localhost:8000/fake-call/audio", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        context: "Act like a protective dad calling his daughter who may be in danger."
+                    })
+                });
+
+                const blob = await res.blob();
+                const audioUrl = URL.createObjectURL(blob);
+
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+
+                audio = new Audio(audioUrl);
+                audio.play();
+            } catch (err) {
+                console.error("❌ Failed to fetch fake call audio:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fakeCallBtn = document.getElementById('fakeCallBtn');
+            const fakeCallView = document.getElementById('fakeCallView');
+            const endCallBtn = document.getElementById('endCallBtn');
+
+            fakeCallBtn.addEventListener('click', async () => {
+                fakeCallView.style.display = 'flex';
+                await fetchFakeCallAudio();
+            });
+
+            endCallBtn.addEventListener('click', () => {
+                fakeCallView.style.display = 'none';
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio = null;
+                    console.log("🔇 Audio manually stopped");
+                }
+            });
+        });
+    </script>
+</head>
+<body onload="initMap()">
+    <div class="header">
+        <h1>Wavelly - Safe Navigation</h1>
+        <div>
+            <button id="fakeCallBtn" class="fake-call-btn">&#128222;</button>
+            <button id="signOutBtn" class="sign-out-btn">Sign Out</button>
+        </div>
+    </div>
+    <div class="controls">
+        <input type="text" id="currentLocation" placeholder="Enter your current location" />
+        <input type="text" id="destination" placeholder="Enter your destination" />
+        <button onclick="updateMap()">Get Routes</button>
+    </div>
+    <div id="map"></div>
+    <div id="fakeCallView" class="fake-call-view" style="display: none;">
+        <div class="fake-call-content">
+            <h2>Incoming Call...</h2>
+            <p>Caller: Dad</p>
+            <button id="endCallBtn" class="end-call-btn">End Call</button>
+        </div>
+    </div>
+</body>
+</html>

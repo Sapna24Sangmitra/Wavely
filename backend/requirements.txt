@@ -6,6 +6,10 @@ httpx
 python-dotenv
 openai
 pydantic
+google-generativeai
+gtts
+twilio
+google-cloud-texttospeech
 geopy
 requests
 

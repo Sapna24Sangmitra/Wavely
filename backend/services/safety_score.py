@@ -1,1 +1,0 @@
-// Placeholder for safety_score.py

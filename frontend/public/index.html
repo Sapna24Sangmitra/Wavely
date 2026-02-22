@@ -310,7 +310,7 @@
         // Add sign out functionality
         document.getElementById('signOutBtn').addEventListener('click', () => {
             signOut(auth).then(() => {
-                window.location.href = '../src/signin.html';
+                window.location.href = './signin.html';
             }).catch((error) => {
                 console.error('Error signing out:', error);
             });
